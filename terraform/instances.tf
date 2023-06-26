@@ -18,6 +18,11 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
+variable "instance_ports" {
+    description = "Port to open on instances"
+    default = [443, 80]
+}
+
 variable "access_key" {
   description = "SSH Access key"
   default     = "ubuntu@ubuntu-key-20220301"

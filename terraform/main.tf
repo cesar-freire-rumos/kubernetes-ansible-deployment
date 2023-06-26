@@ -11,12 +11,30 @@ resource "aws_instance" "k8s" {
     key_name        = "${var.access_key}"
     tags = {
         Name = "${var.instance_prefix}-${element(var.instance_names, count.index)}"
+        server_type = "testing"
+        client = "rumos"
     }
 
     vpc_security_group_ids = [
-        "default"
+        "default",
+        "${aws_security_group.instance_ports.id}",
         ]
 } 
+
+resource "aws_security_group" "instance_ports" {
+    name = "allow_instance_ports"
+    description = "Allow instance frontend ports"
+    ingress {
+        description = "Ports to open on all instances"
+        from_port = "${var.instance_ports}"
+        to_port = "${var.instance_port}"
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    tags = {
+        Name = "allow_instance_ports"
+  }
+}
 
 output "public_ip" {
     value = "${aws_instance.k8s[*].public_ip}"
