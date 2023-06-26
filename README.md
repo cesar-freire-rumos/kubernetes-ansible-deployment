@@ -17,5 +17,4 @@ Profile >> Security credentials >> Access keys
 
 NOTE: Best practices suggests to create  new user with temporary access keys
 
-https://gmusumeci.medium.com/how-to-create-an-iam-account-and-configure-terraform-to-use-aws-static-credentials-a8ea4dd4fdfc
 

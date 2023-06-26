@@ -23,20 +23,20 @@ resource "aws_instance" "k8s-controler" {
 
   connection {
     type        = "ssh"
-    user        = "ubuntu"
+    user        = "${var.user}"
     private_key = file("./ubuntu-key-20220301.pem")
     host        = self.public_ip
   }
 
   provisioner "file" {
-    source      = "./ansible/"
-    destination = "~/ansible"
+    source      = "./ansible"
+    destination = "/home/${var.user}"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x ~/ansible/setup-ansible-controler.sh",
-      "~/setup-ansible-controler.sh",
+      "chmod +x /home/${var.user}/ansible/setup-ansible-controler.sh",
+      "/home/${var.user}/ansible/setup-ansible-controler.sh",
     ]
   }
 }
@@ -78,6 +78,6 @@ resource "aws_security_group" "instance_ports" {
 }
 
 
-output "controler-public_ip" {
-  value = aws_instance.k8s-controler[*].public_ip
+output "controler_login" {
+  value = "ssh -i ubuntu-key-20220301.pem ubuntu@${aws_instance.k8s-controler.public_ip}"
 }

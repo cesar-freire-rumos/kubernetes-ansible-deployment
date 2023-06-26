@@ -1,6 +1,6 @@
 variable "worker_nodes" {
   description = "Number of worker nodes to deploy"
-  default     = 2
+  default     = 1
 }
 
 resource "aws_instance" "k8s" {
@@ -17,10 +17,10 @@ resource "aws_instance" "k8s" {
   }
 
   vpc_security_group_ids = [
-    "default",
+    "default"
   ]
 }
 
-output "node-public_ip" {
+output "nodes-public_ip" {
   value = aws_instance.k8s[*].public_ip
 }

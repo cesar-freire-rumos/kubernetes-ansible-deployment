@@ -4,8 +4,8 @@ variable "instance_prefix" {
 }
 
 variable "instance_type" {
-  description = "Family: t2 1 vCPU 1GiB Memory"
-  default     = "t2.micro"
+  description = "Family: t2 2 vCPU 4GiB Memory"
+  default     = "t2.medium"
 }
 
 variable "access_key" {
