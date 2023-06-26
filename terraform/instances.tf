@@ -20,7 +20,7 @@ variable "instance_type" {
 
 variable "instance_ports" {
     description = "Port to open on instances"
-    default = [443, 80]
+    default = 443
 }
 
 variable "access_key" {

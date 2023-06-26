@@ -11,6 +11,7 @@ resource "aws_instance" "k8s" {
     key_name        = "${var.access_key}"
     tags = {
         Name = "${var.instance_prefix}-${element(var.instance_names, count.index)}"
+        Environment = "Test"
         server_type = "testing"
         client = "rumos"
     }
@@ -27,7 +28,7 @@ resource "aws_security_group" "instance_ports" {
     ingress {
         description = "Ports to open on all instances"
         from_port = "${var.instance_ports}"
-        to_port = "${var.instance_port}"
+        to_port = "${var.instance_ports}"
         protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
