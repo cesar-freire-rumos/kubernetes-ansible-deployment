@@ -3,24 +3,22 @@ variable "instance_prefix" {
   default     = "k8s"
 }
 
-variable "instance_names" {
-  description = "Names of instances"
-  default     = ["node1", "node2"]
-}
-
 variable "instance_type" {
   description = "Family: t2 1 vCPU 1GiB Memory"
   default     = "t2.micro"
 }
-
 
 variable "access_key" {
   description = "SSH Access key"
   default     = "ubuntu@ubuntu-key-20220301"
 }
 
-# Find latest image id
+variable "user" {
+  description = "Default user"
+  default     = "ubuntu"
+}
 
+# Find latest ubuntu image id
 data "aws_ami" "ubuntu" {
   most_recent = true
 

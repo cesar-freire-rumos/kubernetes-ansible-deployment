@@ -4,13 +4,12 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
-resource "aws_instance" "k8s" {
-  count         = length(var.instance_names)
+resource "aws_instance" "k8s-controler" {
   instance_type = var.instance_type
   ami           = data.aws_ami.ubuntu.id
   key_name      = var.access_key
   tags = {
-    Name        = "${var.instance_prefix}-${element(var.instance_names, count.index)}"
+    Name        = "${var.instance_prefix}-controler"
     Environment = "Test"
     Terraform   = "true"
     Project     = "Ansible conference"
@@ -25,19 +24,19 @@ resource "aws_instance" "k8s" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("~/.ssh/ubuntu-key-20220301.pem")
+    private_key = file("./ubuntu-key-20220301.pem")
     host        = self.public_ip
   }
 
   provisioner "file" {
     source      = "./ansible/"
-    destination = "/home/ubuntu/"
+    destination = "~/ansible"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /home/ubuntu/install.sh",
-      "/home/ubuntu/install.sh",
+      "chmod +x ~/ansible/setup-ansible-controler.sh",
+      "~/setup-ansible-controler.sh",
     ]
   }
 }
@@ -62,7 +61,7 @@ resource "aws_security_group" "instance_ports" {
       from_port        = 80
       to_port          = 80
       protocol         = "tcp"
-      cidr_blocks      =  ["0.0.0.0/0"]
+      cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
       self             = false
       security_groups  = []
@@ -78,6 +77,7 @@ resource "aws_security_group" "instance_ports" {
   }
 }
 
-output "public_ip" {
-  value = aws_instance.k8s[*].public_ip
+
+output "controler-public_ip" {
+  value = aws_instance.k8s-controler[*].public_ip
 }

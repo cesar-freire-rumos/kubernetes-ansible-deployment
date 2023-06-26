@@ -1,0 +1,79 @@
+- name: Install and configure Kubeadm kubernetes on ubuntu server
+  hosts: localhost
+  gather_facts: yes
+  become: yes
+  vars:
+    user: ubuntu 
+
+  tasks:
+
+  - name: Set timezone to Europe/Lisbon
+    timezone:
+      name: Europe/Lisbon
+
+  - name: Update and Upgrade Ubuntu
+    apt:
+      upgrade: dist
+      force_apt_get: yes
+      update_cache: yes
+      autoremove: yes
+      cache_valid_time: "432000"
+
+  - name: Install common ssh_key
+    authorized_key:
+      user: "{{ user }}"
+      state: present
+      key: "{{ lookup('file', 'id_rsa.pub') }}"
+
+  - name: Copy ssh private and public key
+    copy:
+      src: "{{ item }}"
+      dest: /home/{{ user }}/.ssh/
+      owner: "{{ user }}"
+      group: "{{ user }}"
+      mode: '0600'
+    with_items:
+    - id_rsa
+    - id_rsa.pub
+
+  - name: Installing requirements packages and tools
+    apt:
+      install_recommends: no
+      force_apt_get: yes
+      name: "{{ packages }}"
+    vars:
+      packages:
+        - apt-transport-https
+        - ca-certificates
+        - software-properties-common
+        - vim
+        - net-tools
+        - curl
+      
+  - name: Add kubernetes.io signing key
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+
+  - name: Add kubernetes repository into sources list
+    apt_repository:
+      repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+      state: present
+      filename: kubernetes-xenial
+      update_cache: "true"
+
+  - name: Install kubernetes
+    apt:
+      update_cache: yes
+      pkg:
+      - kubelet 
+      - kubeadm 
+      - kubectl
+    
+  - name: Create kublet file
+    file:
+      path: /etc/default/kubelet
+      owner: root
+      group: root
+      state: touch
+      mode: u+rw,g-wx,o-wx
