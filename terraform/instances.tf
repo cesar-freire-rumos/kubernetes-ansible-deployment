@@ -4,8 +4,8 @@ variable "instance_prefix" {
 }
 
 variable "instance_names" {
-  description = "Names to create instances"
-  default     = ["node1"]
+  description = "Names of instances"
+  default     = ["node1", "node2"]
 }
 
 variable "instance_image" {
