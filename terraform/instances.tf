@@ -8,23 +8,31 @@ variable "instance_names" {
   default     = ["node1", "node2"]
 }
 
-variable "instance_image" {
-  description = "Ubuntu Server 22.04 LTS (HVM), SSD Volume Type"
-  default     = "ami-04e601abe3e1a910f"
-}
-
 variable "instance_type" {
   description = "Family: t2 1 vCPU 1GiB Memory"
   default     = "t2.micro"
 }
 
-variable "instance_ports" {
-    description = "Port to open on instances"
-    default = 443
-}
 
 variable "access_key" {
   description = "SSH Access key"
   default     = "ubuntu@ubuntu-key-20220301"
 }
 
+# Find latest image id
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
