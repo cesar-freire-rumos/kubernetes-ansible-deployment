@@ -4,12 +4,12 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
-resource "aws_instance" "k8s-controler" {
+resource "aws_instance" "k8s-controller" {
   instance_type = var.instance_type
   ami           = data.aws_ami.ubuntu.id
   key_name      = var.access_key
   tags = {
-    Name        = "${var.instance_prefix}-controler"
+    Name        = "${var.instance_prefix}-controller"
     Environment = "Test"
     Terraform   = "true"
     Project     = "Ansible conference"
@@ -35,8 +35,8 @@ resource "aws_instance" "k8s-controler" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /home/${var.user}/ansible/setup-ansible-controler.sh",
-      "/home/${var.user}/ansible/setup-ansible-controler.sh",
+      "chmod +x /home/${var.user}/ansible/deploy-controller.sh",
+      "/home/${var.user}/ansible/deploy-controller.sh",
     ]
   }
 }
@@ -78,6 +78,4 @@ resource "aws_security_group" "instance_ports" {
 }
 
 
-output "remote_login_controler" {
-  value = "ssh  ubuntu@${aws_instance.k8s-controler.public_ip} -i ubuntu-key-20220301.pem"
-}
+

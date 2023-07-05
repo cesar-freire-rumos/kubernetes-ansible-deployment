@@ -8,10 +8,6 @@
 
   tasks:
 
-  - name: Print playbook version
-    ansible.builtin.debug:
-      msg: "playbook version 1.0.1"
-
   - name: Set timezone to Europe/Lisbon
     ansible.builtin.timezone:
       name: Europe/Lisbon

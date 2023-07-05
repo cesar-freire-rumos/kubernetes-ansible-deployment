@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Start installing ansible"
 
 # Default user
 USER="ubuntu"
@@ -12,19 +13,18 @@ done
 # Install pip to be able to install ansible latest
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get clean
-sleep 3
-sudo apt-get update -qq
-sleep 3
-sudo apt-get install -qq python3-pip
-sleep 3
+sleep 1
+sudo apt-get update -qq && sudo apt-get install -qq python3-pip
+sleep 1
 
-# Install ansible
+# Install ansible via pip for latest version
 mkdir -p /home/$USER/.local/bin
 export PATH="$HOME/.local/bin:$PATH"
 pip -q install ansible;
-echo "Ansible installed..."
 ansible --version
+echo "Finish installing ansible"
 
-# Trigger k8s control plane playbook
-echo "running playbook"
-cd /home/$USER/ansible/ && ansible-playbook -u $USER k8s-controler-playbook.yaml
+# Trigger k8s controller plane playbook
+echo "Running controller playbook"
+cd /home/$USER/ansible/ && ansible-playbook -u $USER ansible-controller-playbook.yaml
+echo "Finish ansible playbook"
