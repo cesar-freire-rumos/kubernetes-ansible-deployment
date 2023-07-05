@@ -41,13 +41,13 @@
     ansible.builtin.command: swapoff -a
 
   - name: Disable SWAP in fstab since kubernetes can't work with swap (2/2)
-    replace:
+    ansible.builtin.replace:
       path: /etc/fstab
       regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
       replace: '# \1'
 
 
-  - name: Installing requirements packages and tools
+  - name: Installing add-on packages and tools
     apt:
       install_recommends: no
       force_apt_get: yes
@@ -59,94 +59,33 @@
         - software-properties-common
         - vim
         - curl
-        - containerd
 
-  - name: Containerd configuration for Kubernetes
-    shell: |
-      mkdir -p /etc/containerd/
-      containerd config default | sudo tee /etc/containerd/config.toml
-      sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
-      systemctl restart containerd
+  - name: Install Microk8s
+    shell: snap install microk8s --classic 
 
-  - name: Using Docker Repository
-    shell: |
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+  - name: Wait for port 16443 to become open on the host
+    ansible.builtin.wait_for:
+      port: 16443
+      delay: 10
 
-  - name: Install CNI Plugins For Containerd
-    shell: |
-      mkdir -p /opt/cni/bin/
-      wget https://github.com/containernetworking/plugins/releases/download/v1.3.0/cni-plugins-linux-amd64-v1.3.0.tgz
-      tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.3.0.tgz
-      systemctl restart containerd
+  - name: Adding user to microk8s group
+    user: name={{ user }}
+          groups=microk8s
+          append=yes
 
-  - name: Add kubernetes.io signing key
-    apt_key:
-      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-      state: present
+  - name: Add alias kubectl
+    blockinfile:
+      insertafter: EOF
+      path: /home/{{ user }}/.bashrc
+      block: | 
+        alias kubectl="microk8s kubectl"
 
-  - name: Add kubernetes repository into sources list
-    apt_repository:
-      repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
-      state: present
-      filename: kubernetes-xenial
-      update_cache: "true"
+  - name: Add new node
+    ansible.builtin.shell: microk8s add-node
+    register: token
 
-  - name: Install kubernetes
-    apt:
-      update_cache: yes
-      pkg:
-      - kubelet 
-      - kubeadm 
-      - kubectl
-    
-  - name: Load k8s net modules
-    ansible.builtin.copy:
-      dest: "/etc/modules-load.d/k8s.conf"
-      content: |
-        overlay
-        br_netfilter
-
-  - name: modprobe net modules
-    ansible.builtin.command: 
-      modprobe overlay && modprobe br_netfilter
-
-  - name: sysctl params required by setup, params persist across reboots
-    ansible.builtin.copy:
-      dest: "/etc/sysctl.d/k8s.conf"
-      content: |
-        net.bridge.bridge-nf-call-iptables  = 1
-        net.bridge.bridge-nf-call-ip6tables = 1
-        net.ipv4.ip_forward                 = 1
-
-  - name: Apply sysctl params
-    ansible.builtin.command: sysctl --system
-
-  - name: modprobe
-    ansible.builtin.command: modprobe br_netfilter
-
-  - name: Update k8s images
-    ansible.builtin.command: kubeadm config images pull
-
-  - name: Export KUBECONFIG to root/.bashrc
-    ansible.builtin.blockinfile:
-      dest: "/root/.bashrc"
-      block: |
-        export KUBECONFIG=/etc/kubernetes/admin.conf
-      marker: '# {mark} ANSIBLE MANAGED BLOCK'
-      insertbefore: BOF
-      create: yes 
-
-  - name: Kubernetes init
-    ansible.builtin.command: kubeadm init
-    register: kubeadm_result
-
-  - name: Print kubeinit join token
+  - name: Print resister token
     ansible.builtin.debug:
-      msg: "{{ kubeadm_result.stdout }}"
+      msg: "{{ token.stdout }}"
 
-  - name: Allow regular user to use k8s
-    ansible.builtin.shell: |
-      mkdir -p /home/{{ user }}/.kube
-      cp /etc/kubernetes/admin.conf /home/{{ user }}/.kube/config
-      chown {{ user }}:{{ user }} /home/{{ user }}/.kube/config
+      

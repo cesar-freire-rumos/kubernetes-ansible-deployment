@@ -1,4 +1,4 @@
-- name: Install kubernetes on worker nodes (ubuntu)
+- name: Install kubernetes on worker node (ubuntu)
   hosts: localhost
   connection: local
   gather_facts: false
@@ -41,11 +41,13 @@
     ansible.builtin.command: swapoff -a
 
   - name: Disable SWAP in fstab since kubernetes can't work with swap (2/2)
-    replace:
+    ansible.builtin.replace:
       path: /etc/fstab
       regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
       replace: '# \1'
-  - name: Installing requirements packages and tools
+
+
+  - name: Installing add-on packages and tools
     apt:
       install_recommends: no
       force_apt_get: yes
@@ -57,49 +59,33 @@
         - software-properties-common
         - vim
         - curl
-        - containerd
+
+  - name: Install Microk8s
+    shell: snap install microk8s --classic 
+
+  - name: Wait for port 16443 to become open on the host
+    ansible.builtin.wait_for:
+      port: 16443
+      delay: 10
+
+  - name: Adding user to microk8s group
+    user: name={{ user }}
+          groups=microk8s
+          append=yes
+
+  - name: Add alias kubectl
+    blockinfile:
+      insertafter: EOF
+      path: /home/{{ user }}/.bashrc
+      block: | 
+        alias kubectl="microk8s kubectl"
+
+  - name: Add new node
+    ansible.builtin.shell: microk8s add-node
+    register: token
+
+  - name: Print resister token
+    ansible.builtin.debug:
+      msg: "{{ token.stdout }}"
+
       
-  - name: Add kubernetes.io signing key
-    apt_key:
-      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-      state: present
-
-  - name: Add kubernetes repository into sources list
-    apt_repository:
-      repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
-      state: present
-      filename: kubernetes-xenial
-      update_cache: "true"
-
-  - name: Install kubernetes
-    apt:
-      update_cache: yes
-      pkg:
-      - kubelet 
-      - kubeadm 
-      - kubectl
-    
-  - name: Load k8s net modules
-    ansible.builtin.copy:
-      dest: "/etc/modules-load.d/k8s.conf"
-      content: |
-        overlay
-        br_netfilter
-
-  - name: modprobe net modules
-    ansible.builtin.command: 
-      modprobe overlay && modprobe br_netfilter
-
-  - name: sysctl params required by setup, params persist across reboots
-    ansible.builtin.copy:
-      dest: "/etc/sysctl.d/k8s.conf"
-      content: |
-        net.bridge.bridge-nf-call-iptables  = 1
-        net.bridge.bridge-nf-call-ip6tables = 1
-        net.ipv4.ip_forward                 = 1
-
-  - name: Apply sysctl params
-    ansible.builtin.command: sysctl --system
-
-  - name: modprobe
-    ansible.builtin.command: modprobe br_netfilter
