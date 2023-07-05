@@ -80,12 +80,10 @@
       block: | 
         alias kubectl="microk8s kubectl"
 
-  - name: Add new node
+  - name: Create a token to add new node to cluster
     ansible.builtin.shell: microk8s add-node
     register: token
 
-  - name: Print resister token
+  - name: Print register token
     ansible.builtin.debug:
       msg: "{{ token.stdout }}"
-
-      
