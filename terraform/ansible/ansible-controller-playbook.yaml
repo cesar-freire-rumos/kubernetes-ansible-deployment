@@ -60,7 +60,26 @@
         - vim
         - curl
         - containerd
-      
+
+  - name: Containerd configuration for Kubernetes
+    shell: |
+      mkdir -p /etc/containerd/
+      containerd config default | sudo tee /etc/containerd/config.toml
+      sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+      systemctl restart containerd
+
+  - name: Using Docker Repository
+    shell: |
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+
+  - name: Install CNI Plugins For Containerd
+    shell: |
+      mkdir -p /opt/cni/bin/
+      wget https://github.com/containernetworking/plugins/releases/download/v1.3.0/cni-plugins-linux-amd64-v1.3.0.tgz
+      tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.3.0.tgz
+      systemctl restart containerd
+
   - name: Add kubernetes.io signing key
     apt_key:
       url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
