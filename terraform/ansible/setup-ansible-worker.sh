@@ -27,4 +27,4 @@ ansible --version
 
 # Trigger k8s control plane playbook
 echo "running playbook"
-cd /home/$USER/ansible/ && ansible-playbook -u $USER k8s-controler-playbook.yaml
+cd /home/$USER/ansible/ && ansible-playbook -u $USER k8s-worker-playbook.yaml

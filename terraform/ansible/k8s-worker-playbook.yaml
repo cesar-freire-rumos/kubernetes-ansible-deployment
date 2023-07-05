@@ -1,4 +1,4 @@
-- name: Install kubernetes on controller node (ubuntu)
+- name: Install kubernetes on worker nodes (ubuntu)
   hosts: localhost
   connection: local
   gather_facts: false
@@ -49,8 +49,6 @@
       path: /etc/fstab
       regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
       replace: '# \1'
-
-
   - name: Installing requirements packages and tools
     apt:
       install_recommends: no
@@ -109,29 +107,3 @@
 
   - name: modprobe
     ansible.builtin.command: modprobe br_netfilter
-
-  - name: Update k8s images
-    ansible.builtin.command: kubeadm config images pull
-
-  - name: Export KUBECONFIG to root/.bashrc
-    ansible.builtin.blockinfile:
-      dest: "/root/.bashrc"
-      block: |
-        export KUBECONFIG=/etc/kubernetes/admin.conf
-      marker: '# {mark} ANSIBLE MANAGED BLOCK'
-      insertbefore: BOF
-      create: yes 
-
-  - name: Kubernetes init
-    ansible.builtin.command: kubeadm init
-    register: kubeadm_result
-
-  - name: Print kubeinit join token
-    ansible.builtin.debug:
-      msg: "{{ kubeadm_result.stdout }}"
-
-  - name: Allow regular user to use k8s
-    ansible.builtin.shell: |
-      mkdir -p /home/{{ user }}/.kube
-      cp /etc/kubernetes/admin.conf /home/{{ user }}/.kube/config
-      chown {{ user }}:{{ user }} /home/{{ user }}/.kube/config

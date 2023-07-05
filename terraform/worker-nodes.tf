@@ -15,12 +15,15 @@ resource "aws_instance" "k8s" {
     Project     = "Ansible conference"
     Entity      = "RUMOS"
   }
-
-  vpc_security_group_ids = [
+    vpc_security_group_ids = [
     "default"
   ]
+
 }
 
-output "nodes-public_ip" {
-  value = aws_instance.k8s[*].public_ip
+output "remote_login_instances" {
+  value =  [
+    for vm_instance in aws_instance.k8s : 
+      "ssh ubuntu@${vm_instance.public_ip} -i ubuntu-key-20220301.pem"
+  ] 
 }

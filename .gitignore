@@ -33,5 +33,5 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# Private ssh keys
+# Private ssh keyse
 *.pem

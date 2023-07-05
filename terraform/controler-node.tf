@@ -18,7 +18,7 @@ resource "aws_instance" "k8s-controler" {
 
   vpc_security_group_ids = [
     "default",
-    "${aws_security_group.instance_ports.id}",
+    "${aws_security_group.instance_ports.id}"
   ]
 
   connection {
@@ -78,6 +78,6 @@ resource "aws_security_group" "instance_ports" {
 }
 
 
-output "controler_login" {
-  value = "ssh -i ubuntu-key-20220301.pem ubuntu@${aws_instance.k8s-controler.public_ip}"
+output "remote_login_controler" {
+  value = "ssh  ubuntu@${aws_instance.k8s-controler.public_ip} -i ubuntu-key-20220301.pem"
 }
