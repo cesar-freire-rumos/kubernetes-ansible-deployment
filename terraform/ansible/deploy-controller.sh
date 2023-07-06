@@ -11,10 +11,9 @@ while [ ! -f /var/lib/cloud/instance/boot-finished ]; do
 done
 
 # Install pip to be able to install ansible latest
-export DEBIAN_FRONTEND=noninteractive
 sudo apt-get clean
 sleep 1
-sudo apt-get update -qq && sudo apt-get install -qq python3-pip
+sudo apt-get update -qq && sudo sudo DEBIAN_FRONTEND=noninteractive apt-get install -qq python3-pip
 sleep 1
 
 # Install ansible via pip for latest version
