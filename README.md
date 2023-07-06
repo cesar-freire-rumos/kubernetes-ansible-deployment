@@ -67,7 +67,7 @@ remote_login_instances = [
 ```
 __Access controller node__
 
-        $ ssh ubuntu@18.156.6.103 -i ubuntu-key-20220301.pem
+        $ ssh ubuntu@<controller-public-ip> -i ubuntu-key-20220301.pem
 
 __Generate new token__
 
