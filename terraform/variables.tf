@@ -7,7 +7,7 @@ variable "instance_prefix" {
 
 variable "worker_nodes" {
   description = "Number of worker nodes to deploy"
-  default     = 1
+  default     = 2
 }
 
 variable "instance_type" {
