@@ -106,18 +106,25 @@ __Access the dashboard using the token retrieved with__
 
         $ microk8s kubectl describe secret -n kube-system microk8s-dashboard-token
 
-__Forward to to 443__
-
-        $ microk8s kubectl port-forward -n kube-system service/kubernetes-dashboard 8443:443 --address 0.0.0.0
-        
 __Goto controller node public ip on port 8443__
+
+  $ microk8s kubectl port-forward -n kube-system service/kubernetes-dashboard 8443:443 --address 0.0.0.0
 
 Ex.: https://35.159.49.78:8443 add add token
 
 ---
 ## Deploy demo application
+https://discourse.ubuntu.com/t/install-a-local-kubernetes-with-microk8s/13981
 
-__Create a new deployment and add following yaml file__
+    $ microk8s kubectl create deployment microbot --image=dontrebootme/microbot:v1
+    $ microk8s kubectl scale deployment microbot --replicas=2
+
+    $ microk8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
+
+    $ microk8s kubectl port-forward -n default svc/microbot-service 8080:80 --address 0.0.0.0
+
+
+## Deploy webcounter app
 
 ```yaml
 apiVersion: apps/v1
@@ -135,7 +142,6 @@ spec:
   strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: redis
     spec:
@@ -164,7 +170,6 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   labels:
     app: webcounter
   name: webcounter
@@ -176,7 +181,6 @@ spec:
   strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: webcounter
     spec:
@@ -187,7 +191,6 @@ spec:
           value: redis-service
         name: webcounter
         resources: {}
-status: {}
 ---
 apiVersion: v1
 kind: Service
