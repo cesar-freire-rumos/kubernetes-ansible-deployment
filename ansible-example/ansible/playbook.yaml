@@ -1,0 +1,29 @@
+- name: Create common SSH Keys on all servers
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: true
+  vars:
+    user: ubuntu 
+
+  tasks:
+  - name: Set timezone to Europe/Lisbon
+    ansible.builtin.timezone:
+      name: Europe/Lisbon
+
+  - name: Install common ssh_key
+    ansible.builtin.authorized_key:
+      user: "{{ user }}"
+      state: present
+      key: "{{ lookup('file', 'id_rsa.pub') }}"
+
+  - name: Copy ssh private and public key
+    ansible.builtin.copy:
+      src: "{{ item }}"
+      dest: /home/{{ user }}/.ssh/
+      owner: "{{ user }}"
+      group: "{{ user }}"
+      mode: '0600'
+    with_items:
+    - id_rsa
+    - id_rsa.pub
